@@ -3,7 +3,7 @@ import logging
 
 from flask_script import Manager
 
-from flask_migrate import Migrate, MigrateCommand, upgrade
+from flask_migrate import Migrate, MigrateCommand, upgrade, migrate
 
 from sqlalchemy import create_engine
 from sqlalchemy.exc import ProgrammingError
@@ -13,7 +13,7 @@ from config import DATABASE_NAME
 
 app = create_app()
 
-migrate = Migrate(app, db)
+migrater = Migrate(app, db)
 
 manager = Manager(app)
 manager.add_command('db', MigrateCommand)
@@ -30,7 +30,7 @@ def create_database():
     conn.execute("commit")
 
     try:
-        conn.execute("create database {}".format(DATABASE_NAME))
+        r = conn.execute("create database {}".format(DATABASE_NAME))
         logging.info("Created database")
     except ProgrammingError:
         logging.info("Database already existed, continuing")
@@ -42,6 +42,7 @@ def create_database():
 def run():
     """Run the app."""
     create_database()
+    migrate()
     upgrade()
     app.run(host="0.0.0.0", port=80)
 
