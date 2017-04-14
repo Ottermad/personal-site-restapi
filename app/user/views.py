@@ -1,6 +1,6 @@
 """Views file."""
 from flask import Blueprint, jsonify, request
-from flask_jwt_extended import create_access_token
+from flask_jwt_extended import create_access_token, jwt_required
 
 from internal.errors import HTTPException, MissingKeyError, NoJSONError
 from internal.services import USER_SERVICE
@@ -13,9 +13,10 @@ user_blueprint = Blueprint('user', __name__, url_prefix='/user')
 
 
 @user_blueprint.route("/user", methods=("POST",))
+@jwt_required
 def create_or_list_user():
     """Create or list user."""
-    forward_request_to_service(request)
+    return forward_request_to_service(request, USER_SERVICE, "/user")
 
 
 @user_blueprint.route("/auth", methods=("POST",))
@@ -33,7 +34,7 @@ def create_token():
     email = json_data['email']
     password = json_data['password']
 
-    # Check email
+    # Check email and password
     response = requests.post(
         USER_SERVICE.host + '/authenticate',
         json={'email': email, 'password': password},
@@ -46,7 +47,7 @@ def create_token():
             response.json()
         )
 
-    user_id = response.json()['id']
+    user_id = response.json()['pk']
     token = {'access_token': create_access_token(identity=user_id), 'user_id': user_id}
 
     return jsonify(token)

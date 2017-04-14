@@ -22,7 +22,7 @@ class AuthAPITests(APITestCase):
         """Test whether User can be created."""
         user = user_factory.new()
         with requests_mock.mock() as m:
-            m.post(USER_SERVICE.host + '/authenticate', json={'id': 18123})
+            m.post(USER_SERVICE.host + '/authenticate', json={'pk': 18123})
             response = self.client.post(
                 '/user/auth',
                 data=json.dumps(user),
